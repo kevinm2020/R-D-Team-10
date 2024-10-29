@@ -31,15 +31,17 @@ def modify_pixel(pixel, bit):
         g = (g & ~1) | int(bit[0])
         return (g,)
 
-#Encode message
+
 def encode_message(image, output, message):
-    #Get image
+    # Open and convert image to RGB or RGBA if necessary
     img = Image.open(image)
+    if img.mode not in ('RGB', 'RGBA'):
+        img = img.convert('RGB')  # Convert grayscale to RGB
+
     pixels = img.load()
 
     # Convert message to binary
     ascii_message = remove_non_ascii(message)
-
     delimiter = message_binary("####END####")
     binary_message = message_binary(ascii_message) + delimiter
 
@@ -51,6 +53,11 @@ def encode_message(image, output, message):
         for x in range(width):
             if binary_index < len(binary_message):
                 pixel = pixels[x, y]
+
+                # Ensure pixel is a tuple
+                if isinstance(pixel, int):
+                    pixel = (pixel, pixel, pixel)  # Grayscale to RGB
+
                 # Take 3 bits from the binary text
                 bit_chunk = binary_message[binary_index:binary_index + 3].ljust(3, '0')
                 # Modify the pixel's RGB values
@@ -60,6 +67,7 @@ def encode_message(image, output, message):
 
     # Save the modified image
     img.save(output)
+
 
 #list images function
 def list_images(folder):
